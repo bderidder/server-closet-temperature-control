@@ -14,11 +14,14 @@
  *    
  * Resources for OLED display
  *    https://wiki.seeedstudio.com/Grove-OLED-Display-0.96-SSD1315/
+ *    
+ * The code below is tested on and uses the builtin sensors/actuators/... of the Grove Beginner Kit for Arduino
+ *    https://www.seeedstudio.com/Grove-Beginner-Kit-for-Arduino-p-4549.html
  */
 
 #include <Arduino.h>
-#include <U8g2lib.h>
-#include <Wire.h>
+#include <U8g2lib.h>  // required to control the OLED display
+#include <Wire.h>     // required to use I2C protocol to drive the OLED display
 
 /*
  * Rotary Angle Sensor constants
@@ -33,8 +36,8 @@ const int  FULL_ANGLE              = 300; // angle sensor goes from 0 degrees to
  */
 const word PWM_FREQ_HZ = 25000; // Noctua NF-P12 PWM, as most computer fans, prefer 25kHz 
 const word TCNT1_TOP   = 16000000/(2*PWM_FREQ_HZ);
-const byte OC1A_PIN    = 9;     // Fan PWM pin - We use Timer1 of the Arduino Uno so we have to use analog pins 9 and 10.
-const byte OC1B_PIN    = 10;    // Fan tacho pin - We use Timer1 of the Arduino Uno so we have to use analog pins 9 and 10.
+const byte OC1A_PIN    = 9;     // Fan PWM pin - we use Timer1 of the Arduino Uno so we have to use analog pins 9 and 10.
+const byte OC1B_PIN    = 10;    // Fan tacho pin - currently not used and probably is not usuable to read the RPM of the fan!
 
 /*
  * OLED display instance, connected on I2C
@@ -47,7 +50,6 @@ U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SD
 void setupPwmTimer() {
 
   pinMode(OC1A_PIN, OUTPUT);
-  pinMode(OC1B_PIN, OUTPUT);
 
   // Clear Timer 1 control and count registers
   TCCR1A = 0;
