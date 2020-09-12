@@ -82,6 +82,9 @@ void setupRotaryAngleSensor() {
 void setupOled() {
 
   u8g2.begin();
+  
+  u8g2.setFlipMode(1);                // the display is mounted upside down on the Grove module, therefore, we flip it.
+  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
 }
 
 /*
@@ -150,10 +153,9 @@ void drawDutyOnOled(byte duty) {
   char snum[5];
   itoa(duty, snum, 10);
 
-  u8g2.clearBuffer();                   // clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);   // choose a suitable font
-  u8g2.drawStr(0,10,snum);              // write something to the internal memory
-  u8g2.sendBuffer();
+  u8g2.clearBuffer();      // clear the internal memory = clear screen
+  u8g2.drawStr(0,10,snum); // write our text to the internal memory
+  u8g2.sendBuffer();       // send buffer to display
 }
 
 /*
