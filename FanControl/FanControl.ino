@@ -20,15 +20,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  * Resources for rotary angle sensor
  *    https://wiki.seeedstudio.com/Grove-Rotary_Angle_Sensor/
  *    
- * Resources for OLED display
- *    https://wiki.seeedstudio.com/Grove-OLED-Display-0.96-SSD1315/
- *    
  * The code below is tested on and uses the builtin sensors/actuators/... of the Grove Beginner Kit for Arduino
  *    https://www.seeedstudio.com/Grove-Beginner-Kit-for-Arduino-p-4549.html
  */
 
 #include <Arduino.h>
-#include <U8g2lib.h>  // required to control the OLED display
 #include <Wire.h>     // required to use I2C protocol to drive the OLED display
 
 /*
@@ -46,11 +42,6 @@ const word PWM_FREQ_HZ = 25000; // Noctua NF-P12 PWM, as most computer fans, pre
 const word TCNT1_TOP   = 16000000/(2*PWM_FREQ_HZ);
 const byte OC1A_PIN    = 9;     // Fan PWM pin - we use Timer1 of the Arduino Uno so we have to use analog pins 9 and 10.
 const byte OC1B_PIN    = 10;    // Fan tacho pin - currently not used and probably is not usuable to read the RPM of the fan!
-
-/*
- * OLED display instance, connected on I2C
- */
-U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);
 
 /*
  * Setup function called once to initialize PWM Timer1
@@ -84,16 +75,6 @@ void setupRotaryAngleSensor() {
   pinMode(ROTARY_ANGLE_SENSOR_PIN, INPUT);
 }
 
-/*
- * Setup function called once to initialize OLED display
- */
-void setupOled() {
-
-  u8g2.begin();
-  
-  u8g2.setFlipMode(1);                // the display is mounted upside down on the Grove module, therefore, we flip it.
-  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-}
 
 /*
  * Bootstrap setup function, from here all other setup functions are called
@@ -106,8 +87,6 @@ void setup() {
   setupPwmTimer();
 
   setupRotaryAngleSensor();
-
-  setupOled();
   
   Serial.println("done");
 
@@ -153,18 +132,6 @@ long getAngleOnRotarySensor() {
   return map(rotaryPinValue, 0, 1023, 0, FULL_ANGLE);
 }
 
-void drawDutyOnOled(byte duty) {
-
-  /*
-   * Translate a numeric value into a string so we can show it on the OLED
-   */
-  char snum[5];
-  itoa(duty, snum, 10);
-
-  u8g2.clearBuffer();      // clear the internal memory = clear screen
-  u8g2.drawStr(0,10,snum); // write our text to the internal memory
-  u8g2.sendBuffer();       // send buffer to display
-}
 
 /*
  * Duty from 0 to 100 interpreted as the % of TCNT1_TOP.
@@ -186,6 +153,4 @@ void setPwmDuty(byte duty) {
   
   Serial.print(" requested, setting OCR1A to ");
   Serial.println(OCR1A);
-
-  drawDutyOnOled(duty);
 }
