@@ -28,6 +28,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <Wire.h>     // required to use I2C protocol to drive the OLED display
 
 /*
+ * 
+ */
+const byte TACHO_PIN = 2; // on an Arduino UNO only digital pins 2 and 3 can have ISR's attached (ISR = Interrupt Service Routine)
+
+/*
  * Rotary Angle Sensor constants
  * 
  * Note: the rotary angle sensor is a rotary potentiometer
@@ -41,7 +46,23 @@ const int  FULL_ANGLE              = 300; // angle sensor goes from 0 degrees to
 const word PWM_FREQ_HZ = 25000; // Noctua NF-P12 PWM, as most computer fans, prefer 25kHz 
 const word TCNT1_TOP   = 16000000/(2*PWM_FREQ_HZ);
 const byte OC1A_PIN    = 9;     // Fan PWM pin - we use Timer1 of the Arduino Uno so we have to use analog pins 9 and 10.
-const byte OC1B_PIN    = 10;    // Fan tacho pin - currently not used and probably is not usuable to read the RPM of the fan!
+
+
+volatile unsigned long tachoTicks = 0;
+unsigned int fanRpm = 0;
+unsigned long tachoTelemeryTimeOld = 0;
+
+void isrTachoTelemetry() {
+
+  tachoTicks++;
+}
+
+void setupTachoTelemetry() {
+
+  //pinMode(TACHO_PIN, INPUT);
+
+  attachInterrupt(digitalPinToInterrupt(TACHO_PIN), isrTachoTelemetry, RISING);
+}
 
 /*
  * Setup function called once to initialize PWM Timer1
@@ -84,6 +105,8 @@ void setup() {
   Serial.begin(115200);
   Serial.print("Starting Fan Control ... ");
 
+  setupTachoTelemetry();
+
   setupPwmTimer();
 
   setupRotaryAngleSensor();
@@ -98,19 +121,32 @@ void setup() {
 
 void loop() {
 
+  updateFanRpm();
+
+  Serial.print("Fan RPM: ");
+  Serial.println(fanRpm);
+
   long degrees = getAngleOnRotarySensor();
   
   Serial.print("The angle between the mark and the starting position: ");
   Serial.println(degrees);
 
   /*
-   * Map the rotary angle to duty cycle value between 0 and 100 
+   * Map the rotary angle to duty cycle value between 0% and 100%
    */
-  int fan_speed = map(degrees, 0, FULL_ANGLE, 0, 100);
+  int fanSpeed = map(degrees, 0, FULL_ANGLE, 0, 100);
   
-  setPwmDuty(fan_speed);
+  setPwmDuty(fanSpeed);
   
   delay(500);
+}
+
+void updateFanRpm() {
+
+  fanRpm = 30*1000/(millis() - tachoTelemeryTimeOld) * tachoTicks;
+  
+  tachoTelemeryTimeOld = millis();
+  tachoTicks = 0;
 }
 
 /*
