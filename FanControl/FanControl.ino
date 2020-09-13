@@ -108,6 +108,8 @@ void setupDHTSensor()
  */
 void setupTachoTelemetry() 
 {
+  pinMode(TACHO_PIN, INPUT);
+  
   // call "isrTachoTelemetry" method each time TACHO_PIN goes from LOW to HIGH
   attachInterrupt(digitalPinToInterrupt(TACHO_PIN), isrTachoTelemetry, RISING);
 }
